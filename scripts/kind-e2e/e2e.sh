@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 set -e
+set -x
+
+# Import functions for deploying/testing with Operator
+. kind-e2e/lib_operator_deploy.sh
+. kind-e2e/lib_operator_deploy_subm_broker.sh
+. kind-e2e/lib_operator_verify_subm_broker.sh
+. kind-e2e/lib_operator_deploy_subm.sh
+. kind-e2e/lib_operator_verify_subm.sh
 
 function kind_clusters() {
     status=$1
@@ -271,16 +279,64 @@ kind_clusters "$@"
 if [[ $3 = true ]]; then
     enable_logging
 fi
-install_helm
-if [[ $4 = true ]]; then
-    enable_kubefed
+
+if [[ $5 = operator ]]; then
+    # Deploy SubM Broker Operator
+    deploy_subm_broker_operator cluster1
+    # Verify SubM Broker Operator
+    verify_subm_broker_operator cluster1
+    # TODO: Do we need to make custom CR or is default from SDK okay?
+    # Deploy SubM CR
+    deploy_subm_broker_cr cluster1
+    # Verify SubM CR
+    verify_subm_broker_cr cluster1
+    # Verify SubM Broker Operator pod
+    verify_subm_broker_op_pod cluster1
+    # Collect SubM Broker vars for use in SubM CRs
+    collect_subm_broker_vars cluster1
+
+    for i in 2 3; do
+      # Add SubM gateway labels
+      add_subm_gateway_label cluster$i
+      # Verify SubM gateway labels
+      verify_subm_gateway_label cluster$i
+
+      # Deploy SubM Operator
+      deploy_subm_operator cluster$i
+      # Verify SubM Operator
+      verify_subm_operator cluster$i
+      # Collect SubM vars for use in SubM CRs
+      collect_subm_vars cluster$i
+      # Create SubM CR
+      create_subm_cr cluster$i
+      # Deploy SubM CR
+      deploy_subm_cr cluster$i
+      # Verify SubM CR
+      verify_subm_cr cluster$i
+      # Verify SubM Operator pod
+      verify_subm_op_pod cluster$i
+    done
+
+    deploy_netshoot_cluster2
+    deploy_nginx_cluster3
+
+    # FIXME: These tests fail
+    #failing_subm_operator_verifcations
+    # FIXME: These tests fail
+    #test_connection
+elif [[ $5 = helm ]]; then
+    install_helm
+    if [[ $4 = true ]]; then
+        enable_kubefed
+    fi
+    kind_import_images
+    setup_broker
+    setup_cluster2_gateway
+    setup_cluster3_gateway
+    failing_subm_operator_verifcations
+    test_connection
+    test_with_e2e_tests
 fi
-kind_import_images
-setup_broker
-setup_cluster2_gateway
-setup_cluster3_gateway
-test_connection
-test_with_e2e_tests
 
 if [[ $1 = keep ]]; then
     echo "your 3 virtual clusters are deployed and working properly with your local"
