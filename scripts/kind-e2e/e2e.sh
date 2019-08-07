@@ -3,7 +3,6 @@ set -e
 set -x
 
 # Import functions for deploying/testing with Operator
-. kind-e2e/lib_operator_deploy.sh
 . kind-e2e/lib_operator_deploy_subm_broker.sh
 . kind-e2e/lib_operator_verify_subm_broker.sh
 . kind-e2e/lib_operator_deploy_subm.sh
@@ -271,6 +270,7 @@ echo Starting with status: $1, k8s_version: $2, logging: $3, kubefed: $4.
 PRJ_ROOT=$(git rev-parse --show-toplevel)
 mkdir -p ${PRJ_ROOT}/output/kind-config/dapper/ ${PRJ_ROOT}/output/kind-config/local-dev/
 SUBMARINER_BROKER_NS=submariner-k8s-broker
+# FIXME: This can change and break re-running deployments
 SUBMARINER_PSK=$(cat /dev/urandom | LC_CTYPE=C tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
 KUBEFED_NS=kube-federation-system
 export KUBECONFIG=$(echo ${PRJ_ROOT}/output/kind-config/dapper/kind-config-cluster{1..3} | sed 's/ /:/g')
@@ -281,21 +281,38 @@ if [[ $3 = true ]]; then
 fi
 
 if [[ $5 = operator ]]; then
+    operator=true
+    install_helm
+    kind_import_images
+    # NB: This fn will skip/exit if clusters CRD already exists
+    setup_broker
+
     # Deploy SubM Broker Operator
-    deploy_subm_broker_operator cluster1
+    #deploy_subm_broker_operator cluster1
     # Verify SubM Broker Operator
-    verify_subm_broker_operator cluster1
+    #verify_subm_broker_operator cluster1
     # TODO: Do we need to make custom CR or is default from SDK okay?
     # Deploy SubM CR
-    deploy_subm_broker_cr cluster1
+    #deploy_subm_broker_cr cluster1
     # Verify SubM CR
-    verify_subm_broker_cr cluster1
+    #verify_subm_broker_cr cluster1
     # Verify SubM Broker Operator pod
-    verify_subm_broker_op_pod cluster1
+    #verify_subm_broker_op_pod cluster1
     # Collect SubM Broker vars for use in SubM CRs
-    collect_subm_broker_vars cluster1
+    #collect_subm_broker_vars cluster1
 
     for i in 2 3; do
+      # Create CRDs required as prerequisite submariner-engine
+      # TODO: Eventually OLM should handle this
+      create_subm_endpoints_crd cluster$i
+      verify_endpoints_crd cluster$i
+      create_subm_clusters_crd cluster$i
+      verify_clusters_crd cluster$i
+      if [[ $also_routeagent = true ]]; then
+        create_routeagents_crd cluster$i
+        verify_routeagents_crd cluster$i
+      fi
+
       # Add SubM gateway labels
       add_subm_gateway_label cluster$i
       # Verify SubM gateway labels
@@ -303,28 +320,55 @@ if [[ $5 = operator ]]; then
 
       # Deploy SubM Operator
       deploy_subm_operator cluster$i
+      # Verify SubM CRD
+      verify_subm_crd cluster$i
       # Verify SubM Operator
       verify_subm_operator cluster$i
-      # Collect SubM vars for use in SubM CRs
-      collect_subm_vars cluster$i
-      # Create SubM CR
-      create_subm_cr cluster$i
-      # Deploy SubM CR
-      deploy_subm_cr cluster$i
-      # Verify SubM CR
-      verify_subm_cr cluster$i
       # Verify SubM Operator pod
       verify_subm_op_pod cluster$i
+
+      # Collect SubM vars for use in SubM CRs
+      collect_subm_vars cluster$i
+      if [[ $also_engine = true ]]; then
+        # FIXME: Rename all of these submariner-engine or engine, vs submariner
+        # Create SubM CR
+        create_subm_cr cluster$i
+        # Deploy SubM CR
+        deploy_subm_cr cluster$i
+        # Verify SubM CR
+        verify_subm_cr cluster$i
+      fi
+      if [[ $also_routeagent = true ]]; then
+        # Create Routeagent CR
+        create_routeagent_cr cluster$i
+        # Deploy Routeagent CR
+        deploy_routeagent_cr cluster$i
+        # Verify Routeagent CR
+        verify_routeagent_cr cluster$i
+      fi
+
+      if [[ $also_engine = true ]]; then
+        # Verify SubM Engine Pod
+        verify_subm_engine_pod cluster$i
+      fi
+      if [[ $also_routeagent = true ]]; then
+        # Verify SubM Routeagent Pods
+        # FIXME: TDD expected-fails currently, no Go logic to read the CR and create a Pod
+        #echo "Skipping TDD expected-failing Routeagent pod verifications"
+        echo "Running TDD expected-failing Routeagent pod verifications"
+        verify_subm_routeagent_pod cluster$i
+      fi
     done
 
     deploy_netshoot_cluster2
     deploy_nginx_cluster3
 
-    # FIXME: These tests fail
-    #failing_subm_operator_verifcations
+    # FIXME: These test no longer fail, w00t, rename
+    #failing_subm_operator_verifications
     # FIXME: These tests fail
     #test_connection
 elif [[ $5 = helm ]]; then
+    helm=true
     install_helm
     if [[ $4 = true ]]; then
         enable_kubefed
@@ -333,7 +377,12 @@ elif [[ $5 = helm ]]; then
     setup_broker
     setup_cluster2_gateway
     setup_cluster3_gateway
-    failing_subm_operator_verifcations
+    failing_subm_operator_verifications
+    for i in 2 3; do
+      collect_subm_vars cluster$i
+      verify_subm_engine_pod cluster$i
+      verify_subm_routeagent_pod cluster$i
+    done
     test_connection
     test_with_e2e_tests
 fi

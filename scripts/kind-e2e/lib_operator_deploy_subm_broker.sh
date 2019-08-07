@@ -7,8 +7,6 @@ function deploy_subm_broker_operator() {
   context=$1
   kubectl config use-context $context
 
-  subm_broker_ns=submariner-k8s-broker
-
   pushd $subm_broker_op_dir
 
   # Create SubM Broker namespace
