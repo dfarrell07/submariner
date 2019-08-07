@@ -281,21 +281,33 @@ if [[ $3 = true ]]; then
 fi
 
 if [[ $5 = operator ]]; then
+    operator=true
+    install_helm
+    kind_import_images
+    # NB: This fn will skip/exit if clusters CRD already exists
+    setup_broker
+
     # Deploy SubM Broker Operator
-    deploy_subm_broker_operator cluster1
+    #deploy_subm_broker_operator cluster1
     # Verify SubM Broker Operator
-    verify_subm_broker_operator cluster1
+    #verify_subm_broker_operator cluster1
     # TODO: Do we need to make custom CR or is default from SDK okay?
     # Deploy SubM CR
-    deploy_subm_broker_cr cluster1
+    #deploy_subm_broker_cr cluster1
     # Verify SubM CR
-    verify_subm_broker_cr cluster1
+    #verify_subm_broker_cr cluster1
     # Verify SubM Broker Operator pod
-    verify_subm_broker_op_pod cluster1
+    #verify_subm_broker_op_pod cluster1
     # Collect SubM Broker vars for use in SubM CRs
-    collect_subm_broker_vars cluster1
+    #collect_subm_broker_vars cluster1
 
     for i in 2 3; do
+      # Create CRDs required as prerequisite submariner-engine
+      # TODO: Eventually OLM should handle this
+      create_subm_endpoints_crd cluster$i
+      create_subm_clusters_crd cluster$i
+      verify_subm_crds cluster$i
+
       # Add SubM gateway labels
       add_subm_gateway_label cluster$i
       # Verify SubM gateway labels
@@ -311,20 +323,26 @@ if [[ $5 = operator ]]; then
       create_subm_cr cluster$i
       # Deploy SubM CR
       deploy_subm_cr cluster$i
-      # Verify SubM CR
-      verify_subm_cr cluster$i
-      # Verify SubM Operator pod
-      verify_subm_op_pod cluster$i
+      # TODO: Need to add parallel checks for go op
+      if [[ $operator_helm = true ]]; then
+        # Verify SubM CR
+        verify_subm_cr cluster$i
+        # Verify SubM Operator pod
+        verify_subm_op_pod cluster$i
+      fi
+      verify_subm_engine_pod cluster$i
     done
 
     deploy_netshoot_cluster2
     deploy_nginx_cluster3
 
     # FIXME: These tests fail
-    #failing_subm_operator_verifcations
+    #failing_subm_operator_verifications
     # FIXME: These tests fail
-    #test_connection
+    sleep 300
+    test_connection
 elif [[ $5 = helm ]]; then
+    helm=true
     install_helm
     if [[ $4 = true ]]; then
         enable_kubefed
@@ -333,7 +351,9 @@ elif [[ $5 = helm ]]; then
     setup_broker
     setup_cluster2_gateway
     setup_cluster3_gateway
-    failing_subm_operator_verifcations
+    failing_subm_operator_verifications
+    verify_subm_engine_pod cluster2
+    verify_subm_engine_pod cluster3
     test_connection
     test_with_e2e_tests
 fi

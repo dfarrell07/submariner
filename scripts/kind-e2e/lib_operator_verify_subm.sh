@@ -17,21 +17,49 @@ function verify_subm_operator() {
   kubectl get ns | grep -v $subm_broker_ns | grep $subm_ns
 
   # Verify SubM Operator CRD
-  kubectl get crds | grep submariners.charts.helm.k8s.io
+  if [[ $operator_helm = true ]]; then
+    kubectl get crds | grep submariners.charts.helm.k8s.io
+  fi
+  if [[ $operator_go = true ]]; then
+    kubectl get crds | grep submariners.submariner.io
+  fi
   kubectl api-resources | grep submariners
 
   # Verify SubM Operator SA
   kubectl get sa --namespace=$subm_ns | grep submariner-operator
 
   # Verify SubM Operator role
-  kubectl get clusterroles | grep submariner-operator
+  # TODO: Why are these different between go and helm operators?
+  if [[ $operator_helm = true ]]; then
+    kubectl get clusterroles --namespace=$subm_ns | grep submariner-operator
+  fi
+  if [[ $operator_go = true ]]; then
+    kubectl get roles --namespace=$subm_ns | grep submariner-operator
+  fi
 
   # Verify SubM Operator role binding
-  kubectl get clusterrolebindings | grep submariner-operator
+  # TODO: Why are these different between go and helm operators?
+  if [[ $operator_helm = true ]]; then
+    kubectl get clusterrolebindings --namespace=$subm_ns | grep submariner-operator
+  fi
+  if [[ $operator_go = true ]]; then
+    kubectl get rolebindings --namespace=$subm_ns | grep submariner-operator
+  fi
 
   # Verify SubM Operator deployment
   kubectl get deployments --namespace=$subm_ns | grep submariner-operator
 }
+
+function verify_subm_crds() {
+  # Accept cluster context as param
+  context=$1
+  kubectl config use-context $context
+
+  # Verify SubM clusters/endpoints CRDs
+  kubectl get crds | grep clusters.submariner.io
+  kubectl get crds | grep endpoints.submariner.io
+}
+
 
 function verify_subm_cr() {
   # Accept cluster context as param
@@ -43,10 +71,6 @@ function verify_subm_cr() {
 
   # Show full SubM CR JSON
   kubectl get submariner example-submariner --namespace=$subm_ns -o json
-
-  # Verify SubM clusters/endpoints CRDs
-  kubectl get crds | grep clusters.submariner.io
-  kubectl get crds | grep endpoints.submariner.io
 
   # Verify SubM namespace
   kubectl get submariner example-submariner --namespace=$subm_ns -o jsonpath='{.metadata.namespace}' | grep submariner
@@ -103,11 +127,57 @@ function verify_subm_op_pod() {
   # Verify SubM Operator pod status
   kubectl get pod $subm_operator_pod_name --namespace=$subm_ns -o jsonpath='{.status.phase}' | grep Running
 
-  # Verify logs
+  # TODO: Verify logs
+  kubectl logs $subm_operator_pod_name --namespace=$subm_ns
   kubectl logs $subm_operator_pod_name --namespace=$subm_ns | grep "Became the leader"
+
+  # TODO: Verify that env vars from CR are set in pod
+  # TODO: Get (dynamic) pod name when running with Helm
+  if [[ $operator_go = true ]]; then
+    kubectl exec -it submariner-pod -n submariner -- env
+  fi
 }
 
-function failing_subm_operator_verifcations() {
+function verify_subm_engine_pod() {
+  # Accept cluster context as param
+  context=$1
+  kubectl config use-context $context
+
+  kubectl wait --for=condition=Ready pods -l app=submariner-engine --timeout=120s --namespace=$subm_ns
+
+  subm_engine_pod_name=$(kubectl get pods --namespace=$subm_ns -l app=submariner-engine -o=jsonpath='{.items..metadata.name}')
+
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o json
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..image}' | grep submariner:local
+  if [[ $helm = true ]]; then
+    kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..securityContext.capabilities.add}' | grep ALL
+  fi
+  if [[ $operator  = true ]]; then
+    kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..securityContext.capabilities.add}' | grep NET_ADMIN
+  fi
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..command}' | grep submariner.sh
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env}'
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep SUBMARINER_NAMESPACE
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep SUBMARINER_CLUSTERCIDR
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep SUBMARINER_SERVICECIDR
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep SUBMARINER_TOKEN
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep SUBMARINER_CLUSTERID
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep SUBMARINER_COLORCODES
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep SUBMARINER_DEBUG
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep SUBMARINER_NATENABLED
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep SUBMARINER_BROKER
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep BROKER_K8S_APISERVER
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep BROKER_K8S_APISERVERTOKEN
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep BROKER_K8S_REMOTENAMESPACE
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep BROKER_K8S_CA
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep CE_IPSEC_PSK
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.spec.containers..env..name}' | grep CE_IPSEC_DEBUG
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.status.phase}' | grep Running
+  kubectl get pod $subm_engine_pod_name --namespace=$subm_ns -o jsonpath='{.metadata.namespace}' | grep $subm_ns
+
+}
+
+function failing_subm_operator_verifications() {
   kubectl config use-context cluster2
   kubectl get pods --namespace=submariner -l app=submariner-routeagent | grep submariner-routeagent
   kubectl get pods --namespace=submariner -l app=submariner-engine | grep submariner
