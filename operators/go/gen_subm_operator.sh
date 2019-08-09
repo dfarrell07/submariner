@@ -1,3 +1,4 @@
+#!/bin/bash
 set -ex
 
 # TODO: Integrate this into e2e tests
