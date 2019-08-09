@@ -10,6 +10,10 @@ set -ex
 
 version=0.0.1
 
+# Work around https://github.com/operator-framework/operator-sdk/issues/1675
+GOROOT="$(go env GOROOT)"
+export GOROOT
+
 function setup_prereqs(){
   if ! command -v dep; then
     # Install dep
