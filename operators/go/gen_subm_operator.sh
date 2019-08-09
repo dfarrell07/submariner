@@ -31,7 +31,7 @@ function setup_prereqs(){
 
   # NB: There must be a running K8s cluster pointed at by the exported KUBECONFIG
   # for operator-sdk to work (although this dependency doesn't make sense)
-  export KUBECONFIG=/home/daniel/.kube/config
+  export KUBECONFIG=$HOME/.kube/config
   #minikube delete
   #minikube start
   if ! minikube status | grep Running; then
@@ -71,7 +71,7 @@ function create_subm_operator() {
 
   operator-sdk add controller --api-version=$api_version --kind=$kind
 
-  controller_file_src=/home/daniel/submariner/operators/go/submariner_controller.go
+  controller_file_src=$GOPATH/src/github.com/submariner-io/submariner/operators/go/submariner_controller.go
   controller_file_dst=pkg/controller/submariner/submariner_controller.go
 
   cp $controller_file_src $controller_file_dst
