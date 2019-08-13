@@ -98,7 +98,7 @@ cat <<EOF > $ns_file
 }
 EOF
 
-  sed -i "s|REPLACE_IMAGE|docker.io/dfarrell07/submariner-operator:$version|g" deploy/operator.yaml
+  sed -i "s|REPLACE_IMAGE|quay.io/submariner/submariner-operator:$version|g" deploy/operator.yaml
 
   go mod vendor
   # This seems like a bug in operator-sdk, that this is needed?
@@ -106,8 +106,8 @@ EOF
   go get k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1
   go get github.com/coreos/prometheus-operator/pkg/apis/monitoring
 
-  operator-sdk build docker.io/dfarrell07/submariner-operator:$version --verbose
-  docker push docker.io/dfarrell07/submariner-operator:$version
+  operator-sdk build quay.io/submariner/submariner-operator:$version --verbose
+  docker push quay.io/submariner/submariner-operator:$version
   popd
   popd
 }
