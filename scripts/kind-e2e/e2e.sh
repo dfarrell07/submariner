@@ -3,6 +3,10 @@ set -em
 
 source $(git rev-parse --show-toplevel)/scripts/lib/debug_functions
 
+# Import functions for deploying/testing with Operator
+. kind-e2e/lib_operator_deploy_subm.sh
+. kind-e2e/lib_operator_verify_subm.sh
+
 ### Functions ###
 
 function kind_clusters() {
@@ -115,9 +119,13 @@ function setup_broker() {
         helm --kube-context cluster1 install submariner-latest/submariner-k8s-broker --name ${SUBMARINER_BROKER_NS} --namespace ${SUBMARINER_BROKER_NS}
     fi
 
+    # FIXME: Shouldn't this be a dynamic namespace, not hard-coded "default"?
     SUBMARINER_BROKER_URL=$(kubectl --context=cluster1 -n default get endpoints kubernetes -o jsonpath="{.subsets[0].addresses[0].ip}:{.subsets[0].ports[?(@.name=='https')].port}")
     SUBMARINER_BROKER_CA=$(kubectl --context=cluster1 -n ${SUBMARINER_BROKER_NS} get secrets -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='${SUBMARINER_BROKER_NS}-client')].data['ca\.crt']}")
     SUBMARINER_BROKER_TOKEN=$(kubectl --context=cluster1 -n ${SUBMARINER_BROKER_NS} get secrets -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='${SUBMARINER_BROKER_NS}-client')].data.token}"|base64 --decode)
+
+    # Verify SUBMARINER_BROKER_TOKEN is non-null/expected size
+    echo $SUBMARINER_BROKER_TOKEN | wc -c | grep 964
 }
 
 function setup_cluster2_gateway() {
@@ -326,6 +334,7 @@ echo Starting with status: $1, k8s_version: $2, logging: $3, kubefed: $4.
 PRJ_ROOT=$(git rev-parse --show-toplevel)
 mkdir -p ${PRJ_ROOT}/output/kind-config/dapper/ ${PRJ_ROOT}/output/kind-config/local-dev/
 SUBMARINER_BROKER_NS=submariner-k8s-broker
+# FIXME: This can change and break re-running deployments
 SUBMARINER_PSK=$(cat /dev/urandom | LC_CTYPE=C tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
 KUBEFED_NS=kube-federation-system
 export KUBECONFIG=$(echo ${PRJ_ROOT}/output/kind-config/dapper/kind-config-cluster{1..3} | sed 's/ /:/g')
@@ -335,16 +344,108 @@ setup_custom_cni
 if [[ $3 = true ]]; then
     enable_logging
 fi
-install_helm
-if [[ $4 = true ]]; then
-    enable_kubefed
+
+if [[ $5 = operator ]]; then
+    operator=true
+    # TODO: Convert these Broker-deploy steps to use Operator instead of Helm
+    install_helm
+    kind_import_images
+    # NB: This fn will skip/exit if clusters CRD already exists
+    setup_broker
+    # Verify SubM Broker secrets
+    collect_subm_vars cluster1
+    verify_subm_broker_secrets cluster1
+
+    for i in 2 3; do
+      # Create CRDs required as prerequisite submariner-engine
+      # TODO: Eventually OLM should handle this
+      create_subm_endpoints_crd cluster$i
+      verify_endpoints_crd cluster$i
+      create_subm_clusters_crd cluster$i
+      verify_clusters_crd cluster$i
+      if [[ $also_routeagent = true ]]; then
+        create_routeagents_crd cluster$i
+        verify_routeagents_crd cluster$i
+      fi
+
+      # Add SubM gateway labels
+      add_subm_gateway_label cluster$i
+      # Verify SubM gateway labels
+      verify_subm_gateway_label cluster$i
+
+      # Deploy SubM Operator
+      deploy_subm_operator cluster$i
+      # Verify SubM CRD
+      verify_subm_crd cluster$i
+      # Verify SubM Operator
+      verify_subm_operator cluster$i
+      # Verify SubM Operator pod
+      verify_subm_op_pod cluster$i
+      # Verify SubM Operator container
+      verify_subm_operator_container cluster$i
+
+      # Collect SubM vars for use in SubM CRs
+      collect_subm_vars cluster$i
+      if [[ $also_engine = true ]]; then
+        # FIXME: Rename all of these submariner-engine or engine, vs submariner
+        # Create SubM CR
+        create_subm_cr cluster$i
+        # Deploy SubM CR
+        deploy_subm_cr cluster$i
+        # Verify SubM CR
+        verify_subm_cr cluster$i
+        # Verify SubM Engine Pod
+        verify_subm_engine_pod cluster$i
+        # Verify SubM Engine container
+        verify_subm_engine_container cluster$i
+        # Verify Engine secrets
+        verify_subm_engine_secrets cluster$i
+      fi
+      if [[ $also_routeagent = true ]]; then
+        # Create Routeagent CR
+        create_routeagent_cr cluster$i
+        # Deploy Routeagent CR
+        deploy_routeagent_cr cluster$i
+        # Verify Routeagent CR
+        verify_routeagent_cr cluster$i
+        # Verify SubM Routeagent Pods
+        verify_subm_routeagent_pod cluster$i
+        # Verify SubM Routeagent container
+        verify_subm_routeagent_container cluster$i
+        # Verify Routeagent secrets
+        verify_subm_routeagent_secrets cluster$i
+      fi
+    done
+
+    deploy_netshoot_cluster2
+    deploy_nginx_cluster3
+
+    # FIXME: These tests fail
+    test_connection
+elif [[ $5 = helm ]]; then
+    helm=true
+    install_helm
+    if [[ $4 = true ]]; then
+        enable_kubefed
+    fi
+    kind_import_images
+    setup_broker
+    setup_cluster2_gateway
+    setup_cluster3_gateway
+    collect_subm_vars cluster1
+    verify_subm_broker_secrets cluster1
+    for i in 2 3; do
+      collect_subm_vars cluster$i
+      verify_subm_engine_pod cluster$i
+      verify_subm_routeagent_pod cluster$i
+      verify_subm_engine_container cluster$i
+      verify_subm_routeagent_container cluster$i
+      verify_subm_engine_secrets cluster$i
+      verify_subm_routeagent_secrets cluster$i
+    done
+    test_connection
+    test_with_e2e_tests
 fi
-kind_import_images
-setup_broker
-setup_cluster2_gateway
-setup_cluster3_gateway
-test_connection
-test_with_e2e_tests
 
 if [[ $1 = keep ]]; then
     echo "your 3 virtual clusters are deployed and working properly with your local"
