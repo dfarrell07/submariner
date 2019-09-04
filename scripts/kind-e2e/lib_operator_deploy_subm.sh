@@ -25,7 +25,7 @@ GOPATH=$HOME/go
 subm_op_dir=$GOPATH/src/github.com/submariner-operator/submariner-operator
 mkdir -p $subm_op_dir
 
-cp -r ../operators/go/submariner-operator/ $subm_op_dir/..
+cp -r ../operators/go/ $subm_op_dir/
 
 # TODO Add tests that verify default ns works
 #subm_ns=default
