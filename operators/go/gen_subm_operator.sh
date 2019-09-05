@@ -148,6 +148,10 @@ function add_subm_routeagent_to_operator() {
   fi
 
   operator-sdk add controller --api-version=$api_version --kind=$kind
+  # FIXME: why do we need this? the code seems fine, but miscompiles
+  # pkg/controller/add_routeagent.go:4:2: imported and not used: "github.com/submariner-operator/submariner-operator/pkg/controller/routagent"
+  # pkg/controller/add_routeagent.go:9:48: undefined: routeagent
+  sed -i 's/"github.com/routeagent "github.com/' pkg/controller/add_routeagent.go
 
   controller_file_src=$GOPATH/src/github.com/submariner-io/submariner/operators/go/routeagent_controller.go
   controller_file_dst=pkg/controller/routeagent/routeagent_controller.go
