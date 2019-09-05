@@ -111,10 +111,7 @@ function add_subm_engine_to_operator() {
 
   operator-sdk add controller --api-version=$api_version --kind=$kind
 
-  # FIXME: This needs to point at the under-dev/un-merged custom controller file
-  #controller_file_src=$GOPATH/src/github.com/submariner-io/submariner/operators/go/submariner_controller.go
-  # FIXME: Don't have such a hard assumption about the location of custom controller
-  controller_file_src=$HOME/submariner/operators/go/submariner_controller.go
+  controller_file_src=$GOPATH/src/github.com/submariner-io/submariner/operators/go/submariner_controller.go
   controller_file_dst=pkg/controller/submariner/submariner_controller.go
 
   cp $controller_file_src $controller_file_dst
@@ -152,8 +149,7 @@ function add_subm_routeagent_to_operator() {
 
   operator-sdk add controller --api-version=$api_version --kind=$kind
 
-  # FIXME: Make this path generic/shareable
-  controller_file_src=/home/daniel/submariner/operators/go/routeagent_controller.go
+  controller_file_src=$GOPATH/src/github.com/submariner-io/submariner/operators/go/routeagent_controller.go
   controller_file_dst=pkg/controller/routeagent/routeagent_controller.go
   cp $controller_file_src $controller_file_dst
 
