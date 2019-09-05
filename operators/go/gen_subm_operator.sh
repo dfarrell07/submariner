@@ -47,9 +47,7 @@ function initilize_subm_operator() {
   pushd submariner-operator
   sed -i 's|REPLACE_NAMESPACE|submariner|g' deploy/role_binding.yaml
 
-  # FIXME: Get permission to push to non-personal Quay repo
-  sed -i "s|REPLACE_IMAGE|docker.io/dfarrell07/submariner-operator:$version|g" deploy/operator.yaml
-  #sed -i "s|REPLACE_IMAGE|quay.io/submariner/submariner-operator:$version|g" deploy/operator.yaml
+  sed -i "s|REPLACE_IMAGE|quay.io/submariner/submariner-operator:$version|g" deploy/operator.yaml
 
   # Create a definition namespace for SubM
   ns_file=deploy/namespace.yaml
@@ -168,11 +166,8 @@ function build_subm_operator() {
   go get k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1
   go get github.com/coreos/prometheus-operator/pkg/apis/monitoring
 
-  # FIXME: Get permission to push to non-personal Quay repo
-  #operator-sdk build quay.io/submariner/submariner-operator:$version --verbose
-  #docker push quay.io/submariner/submariner-operator:$version
-  operator-sdk build docker.io/dfarrell07/submariner-operator:$version --verbose
-  docker push docker.io/dfarrell07/submariner-operator:$version
+  operator-sdk build quay.io/submariner/submariner-operator:$version --verbose
+  docker push quay.io/submariner/submariner-operator:$version
 
   popd
 }
