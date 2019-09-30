@@ -148,6 +148,58 @@ function export_subm_op() {
   cp -a $op_dir/. $op_out_dir/
 }
 
+function add_subm_cluster_crd_to_operator() {
+  pushd $op_dir
+  api_version=submariner.io/v1alpha1
+  kind=Cluster
+  operator-sdk add crd --api-version=$api_version --kind=$kind || true
+
+  clusters_crd_file=deploy/crds/submariner_clusters_crd.yaml
+
+  # TODO: Can/should we create this with Op-SDK?
+cat <<EOF > $clusters_crd_file
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: clusters.submariner.io
+spec:
+  group: submariner.io
+  version: v1
+  names:
+    kind: Cluster
+    plural: clusters
+  scope: Namespaced
+EOF
+
+  cat $clusters_crd_file
+}
+
+function add_subm_endpoint_crd_to_operator() {
+  pushd $op_dir
+  api_version=submariner.io/v1alpha1
+  kind=Endpoint
+  operator-sdk add crd --api-version=$api_version --kind=$kind || true
+
+  endpoints_crd_file=deploy/crds/submariner_endpoints_crd.yaml
+
+cat <<EOF > $endpoints_crd_file
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: endpoints.submariner.io
+  annotations:
+spec:
+  group: submariner.io
+  version: v1
+  names:
+    kind: Endpoint
+    plural: endpoints
+  scope: Namespaced
+EOF
+
+  cat $endpoints_crd_file
+}
+
 # Make sure prereqs are installed
 setup_prereqs
 
@@ -155,5 +207,7 @@ setup_prereqs
 initialize_subm_operator
 add_subm_engine_to_operator
 add_subm_routeagent_to_operator
+add_subm_cluster_crd_to_operator
+add_subm_endpoint_crd_to_operator
 
 export_subm_op

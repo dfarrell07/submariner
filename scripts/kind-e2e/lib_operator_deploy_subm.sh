@@ -21,65 +21,6 @@ function add_subm_gateway_label() {
   kubectl label node $context-worker "submariner.io/gateway=true" --overwrite
 }
 
-function create_subm_clusters_crd() {
-  pushd $subm_op_dir
-
-  clusters_crd_file=deploy/crds/submariner_clusters_crd.yaml
-
-  # TODO: Can/should we create this with Op-SDK?
-cat <<EOF > $clusters_crd_file
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: clusters.submariner.io
-spec:
-  group: submariner.io
-  version: v1
-  names:
-    kind: Cluster
-    plural: clusters
-  scope: Namespaced
-EOF
-
-  cat $clusters_crd_file
-
-  # Create clusters CRD
-  # NB: This must be done before submariner-engine pod is deployed
-  create_resource_if_missing crd clusters.submariner.io $clusters_crd_file
-
-  popd
-}
-
-function create_subm_endpoints_crd() {
-  pushd $subm_op_dir
-
-  endpoints_crd_file=deploy/crds/submariner_endpoints_crd.yaml
-
-  # TODO: Can/should we create this with Op-SDK?
-cat <<EOF > $endpoints_crd_file
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: endpoints.submariner.io
-  annotations:
-spec:
-  group: submariner.io
-  version: v1
-  names:
-    kind: Endpoint
-    plural: endpoints
-  scope: Namespaced
-EOF
-
-  cat $endpoints_crd_file
-
-  # Create endpoints CRD
-  # NB: This must be done before submariner-engine pod is deployed
-  create_resource_if_missing crd endpoints.submariner.io $endpoints_crd_file
-
-  popd
-}
-
 function create_routeagents_crd() {
   pushd $subm_op_dir
 
