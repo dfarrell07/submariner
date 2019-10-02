@@ -2,11 +2,11 @@
 submariner-engine
 submariner-route-agent
 .dapper
-bin
+**/bin
 dist
 output
 strongswan
-/vendor
+**/vendor
 package/strongswan-*
 .project
 .settings

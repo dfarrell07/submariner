@@ -1,0 +1,7 @@
+apiVersion: submariner.io/v1alpha1
+kind: Routeagent
+metadata:
+  name: example-routeagent
+spec:
+  # Add fields here
+  size: 3
