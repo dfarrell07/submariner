@@ -15,6 +15,3 @@ if [[ $push_image = true ]]; then
 else
   echo "Skipping pushing SubM Operator image to Quay"
 fi
-
-
-
