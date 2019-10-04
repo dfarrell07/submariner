@@ -11,7 +11,7 @@ GOPATH=$HOME/go
 # disappearing repositories
 export GOPROXY=https://proxy.golang.org
 
-version=0.0.1
+version=0.0.2
 push_image=false
 op_dir=$GOPATH/src/github.com/submariner-operator/submariner-operator
 op_gen_dir=$(pwd)
