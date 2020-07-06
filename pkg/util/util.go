@@ -24,7 +24,9 @@ func getAPIIdentifier(token string) (string, error) {
 	if len(token) != tokenLength {
 		return "", fmt.Errorf("Token %s length was not %d", token, tokenLength)
 	}
+
 	clusterID := token[0 : tokenLength/2]
+
 	return clusterID, nil
 }
 
@@ -32,7 +34,9 @@ func getConnectSecret(token string) (string, error) {
 	if len(token) != tokenLength {
 		return "", fmt.Errorf("Token %s length was not %d", token, tokenLength)
 	}
+
 	connectSecret := token[tokenLength/2 : tokenLength]
+
 	return connectSecret, nil
 }
 
@@ -71,11 +75,13 @@ func FlattenColors(colorCodes []string) string {
 	}
 
 	flattenedColors := colorCodes[0]
+
 	for k, v := range colorCodes {
 		if k != 0 {
 			flattenedColors = flattenedColors + "," + v
 		}
 	}
+
 	return flattenedColors
 }
 
@@ -87,6 +93,7 @@ func GetLocalCluster(ss types.SubmarinerSpecification) (types.SubmarinerCluster,
 	localCluster.Spec.ServiceCIDR = ss.ServiceCidr
 	localCluster.Spec.GlobalCIDR = ss.GlobalCidr
 	localCluster.Spec.ColorCodes = ss.ColorCodes
+
 	return localCluster, nil
 }
 
@@ -96,6 +103,7 @@ func GetLocalEndpoint(clusterID string, backend string, backendConfig map[string
 	if err != nil {
 		return types.SubmarinerEndpoint{}, fmt.Errorf("Error getting hostname: %v", err)
 	}
+
 	endpoint := types.SubmarinerEndpoint{
 		Spec: subv1.EndpointSpec{
 			CableName:     fmt.Sprintf("submariner-cable-%s-%s", clusterID, strings.Replace(privateIP, ".", "-", -1)),
@@ -108,6 +116,7 @@ func GetLocalEndpoint(clusterID string, backend string, backendConfig map[string
 			BackendConfig: backendConfig,
 		},
 	}
+
 	if natEnabled {
 		publicIP, err := ipify.GetIp()
 		if err != nil {
@@ -115,6 +124,7 @@ func GetLocalEndpoint(clusterID string, backend string, backendConfig map[string
 		}
 		endpoint.Spec.PublicIP = publicIP
 	}
+
 	return endpoint, nil
 }
 
@@ -252,11 +262,13 @@ func IsOverlappingCIDR(cidrList []string, cidr string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	for _, v := range cidrList {
 		_, baseNet, err := net.ParseCIDR(v)
 		if err != nil {
 			return false, err
 		}
+
 		if baseNet.Contains(newNet.IP) || newNet.Contains(baseNet.IP) {
 			return true, nil
 		}
