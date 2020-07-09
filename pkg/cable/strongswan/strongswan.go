@@ -131,9 +131,9 @@ func (i *strongSwan) ConnectToEndpoint(endpoint types.SubmarinerEndpoint) (strin
 		remoteEndpointIP = endpoint.Spec.PrivateIP
 	}
 
-	var localTs, remoteTs, localAddr, remoteAddr []string
-	localTs = append(localTs, fmt.Sprintf("%s/32", i.localEndpoint.Spec.PrivateIP))
-	localTs = append(localTs, i.localEndpoint.Spec.Subnets...)
+	var localTS, remoteTs, localAddr, remoteAddr []string
+	localTS = append(localTS, fmt.Sprintf("%s/32", i.localEndpoint.Spec.PrivateIP))
+	localTS = append(localTS, i.localEndpoint.Spec.Subnets...)
 
 	localAddr = append(localAddr, i.localEndpoint.Spec.PrivateIP)
 
@@ -143,7 +143,7 @@ func (i *strongSwan) ConnectToEndpoint(endpoint types.SubmarinerEndpoint) (strin
 	remoteAddr = append(remoteAddr, remoteEndpointIP)
 	// todo: make the ESP proposals configurable
 	childSAConf := goStrongswanVici.ChildSAConf{
-		Local_ts:      localTs,
+		Local_ts:      localTS,
 		Remote_ts:     remoteTs,
 		ESPProposals:  []string{"aes128gcm16-modp2048", "aes-modp2048"},
 		StartAction:   "start",

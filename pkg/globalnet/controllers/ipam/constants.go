@@ -6,7 +6,7 @@ type Operation string
 
 const (
 	handlerResync          = time.Hour * 24
-	submarinerIpamGlobalIp = "submariner.io/globalIp"
+	submarinerIpamGlobalIP = "submariner.io/globalIP"
 	submarinerIngress      = "SUBMARINER-GN-INGRESS"
 	submarinerEgress       = "SUBMARINER-GN-EGRESS"
 	submarinerMark         = "SUBMARINER-GN-MARK"

@@ -12,7 +12,9 @@ linters:
     #- dupl
     - errcheck
     #- funlen
+    # Will require refactoring to remove three init funcs:
     #- gochecknoinits
+    # Likely just remove:
     #- goconst
     #- gocritic
     - gocyclo
@@ -31,6 +33,7 @@ linters:
     #- scopelint
     - staticcheck
     - structcheck
+    # Will require lots of refactoring Ip to IP in var names:
     #- stylecheck
     - typecheck
     - unconvert

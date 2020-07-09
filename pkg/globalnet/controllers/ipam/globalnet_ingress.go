@@ -27,7 +27,7 @@ func (i *Controller) updateIngressRulesForService(globalIP, chainName string, ad
 	return nil
 }
 
-func (i *Controller) kubeProxyClusterIpServiceChainName(service *k8sv1.Service) string {
+func (i *Controller) kubeProxyClusterIPServiceChainName(service *k8sv1.Service) string {
 	// CNIs that use kube-proxy with iptables for loadbalancing create an iptables chain for each service
 	// and incoming traffic to the clusterIP Service is directed into the respective chain.
 	// Reference: https://bit.ly/2OPhlwk
