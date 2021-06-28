@@ -15,13 +15,13 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 'Verify no "Apply suggestions from code review" commits'
+      - name: 'Verify no "Apply suggestions from code review" commits foo'
         uses: tim-actions/commit-message-checker-with-regex@v0.3.1
         with:
           commits: ${{ steps.get-pr-commits.outputs.commits }}
           pattern: '^(?!.*(apply suggestions from code review))'
           flags: 'i'
-          error: 'Commits addressing code review feedback should be squashed into the commits under review'
+          error: 'Commits addressing code review feedback should be squashed into the commits under review foo'
 
   code-gen:
     name: Submariner K8s API Code Generation
