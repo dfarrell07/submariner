@@ -139,7 +139,7 @@ jobs:
           languages: go
           debug: true
       - name: Build code, creating CodeQL database
-        run: make build
+        uses: github/codeql-action/autobuild@v2
       - name: Run CodeQL variant analysis
         uses: github/codeql-action/analyze@v2
 
