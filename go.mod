@@ -1,6 +1,6 @@
 module github.com/submariner-io/submariner
 
-go 1.23.0
+go 1.23.7
 
 require (
 	github.com/cenkalti/backoff/v4 v4.3.0
@@ -11,7 +11,7 @@ require (
 	github.com/ovn-org/libovsdb v0.7.0
 	github.com/ovn-org/ovn-kubernetes/go-controller v0.0.0-20220511131059-ac1ce4691c0f
 	github.com/pkg/errors v0.9.1
-	github.com/projectcalico/api v0.0.0-20230602153125-fb7148692637
+	github.com/projectcalico/api v0.0.0-20250326193936-759a4c3213d1
 	github.com/prometheus-community/pro-bing v0.6.1
 	github.com/prometheus/client_golang v1.21.1
 	github.com/submariner-io/admiral v0.21.0-m0.0.20250319174843-be32dc00380f
@@ -21,9 +21,9 @@ require (
 	golang.org/x/sys v0.31.0
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20230429144221-925a1e7659e6
 	google.golang.org/protobuf v1.36.1
-	k8s.io/api v0.32.1
-	k8s.io/apimachinery v0.32.1
-	k8s.io/client-go v0.32.1
+	k8s.io/api v0.32.3
+	k8s.io/apimachinery v0.32.3
+	k8s.io/client-go v0.32.3
 	k8s.io/component-helpers v0.32.1
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738
 	sigs.k8s.io/controller-runtime v0.20.3
@@ -56,6 +56,7 @@ require (
 	github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/jinzhu/copier v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/josharian/native v1.1.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
