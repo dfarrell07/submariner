@@ -14,7 +14,7 @@ require (
 	github.com/projectcalico/api v0.0.0-20230602153125-fb7148692637
 	github.com/prometheus-community/pro-bing v0.6.1
 	github.com/prometheus/client_golang v1.21.1
-	github.com/submariner-io/admiral v0.21.0-m0.0.20250319174843-be32dc00380f
+	github.com/submariner-io/admiral v0.21.0-m0.0.20250402100557-2e5296802a99
 	github.com/submariner-io/shipyard v0.21.0-m0
 	github.com/vishvananda/netlink v1.3.0
 	golang.org/x/net v0.37.0
@@ -26,7 +26,7 @@ require (
 	k8s.io/client-go v0.32.1
 	k8s.io/component-helpers v0.32.1
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738
-	sigs.k8s.io/controller-runtime v0.20.3
+	sigs.k8s.io/controller-runtime v0.20.4
 	sigs.k8s.io/knftables v0.0.18
 	sigs.k8s.io/mcs-api v0.1.0
 	sigs.k8s.io/structured-merge-diff/v4 v4.6.0
@@ -75,7 +75,7 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
-	github.com/rs/zerolog v1.33.0 // indirect
+	github.com/rs/zerolog v1.34.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/urfave/cli/v2 v2.4.0 // indirect
