@@ -20,7 +20,7 @@ require (
 	golang.org/x/net v0.37.0
 	golang.org/x/sys v0.31.0
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20230429144221-925a1e7659e6
-	google.golang.org/protobuf v1.36.1
+	google.golang.org/protobuf v1.36.6
 	k8s.io/api v0.32.1
 	k8s.io/apimachinery v0.32.1
 	k8s.io/client-go v0.32.1
