@@ -12,12 +12,12 @@ require (
 	github.com/ovn-org/ovn-kubernetes/go-controller v0.0.0-20220511131059-ac1ce4691c0f
 	github.com/pkg/errors v0.9.1
 	github.com/projectcalico/api v0.0.0-20230602153125-fb7148692637
-	github.com/prometheus-community/pro-bing v0.6.1
+	github.com/prometheus-community/pro-bing v0.7.0
 	github.com/prometheus/client_golang v1.21.1
 	github.com/submariner-io/admiral v0.21.0-m0.0.20250319174843-be32dc00380f
 	github.com/submariner-io/shipyard v0.21.0-m0
 	github.com/vishvananda/netlink v1.3.0
-	golang.org/x/net v0.37.0
+	golang.org/x/net v0.38.0
 	golang.org/x/sys v0.31.0
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20230429144221-925a1e7659e6
 	google.golang.org/protobuf v1.36.1
@@ -83,7 +83,7 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/oauth2 v0.24.0 // indirect
-	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
