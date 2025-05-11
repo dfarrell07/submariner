@@ -16,7 +16,7 @@ require (
 	github.com/prometheus/client_golang v1.21.1
 	github.com/submariner-io/admiral v0.21.0-m0.0.20250319174843-be32dc00380f
 	github.com/submariner-io/shipyard v0.21.0-m0
-	github.com/vishvananda/netlink v1.3.0
+	github.com/vishvananda/netlink v1.3.1
 	golang.org/x/net v0.37.0
 	golang.org/x/sys v0.31.0
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20230429144221-925a1e7659e6
