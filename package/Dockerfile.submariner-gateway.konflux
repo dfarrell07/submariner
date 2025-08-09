@@ -59,7 +59,7 @@ COPY --from=builder \
     ${SOURCE}/package/await-node-ready.sh \
     /usr/local/bin/
 
-RUN chown 0:0 /usr/local/bin/* && \
+RUN chgrp -R submariner /usr/local/bin && \
     chmod 775 /usr/local/bin/submariner-gateway \
               /usr/local/bin/await-node-ready \
               /usr/local/bin/submariner.sh \

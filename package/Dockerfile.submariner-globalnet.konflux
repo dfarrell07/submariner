@@ -55,7 +55,7 @@ RUN ls -l /usr/local/bin
 COPY --from=builder ${SOURCE}/LICENSE /licenses/LICENSE
 
 # TODO This is commented out in the current build, but requried by EC in the new build
-USER 1001010000
+USER 1001
 
 ENTRYPOINT ["/usr/local/bin/submariner-globalnet.sh"]
 
