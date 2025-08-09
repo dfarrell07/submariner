@@ -46,6 +46,9 @@ RUN dnf -y update && \
 
 RUN adduser -r -l -u 1001010000 submariner
 
+# TODO Verify this is needed
+RUN mkdir -p /etc/ipsec /etc/ipsec.d && chmod -R 775 /etc/ipsec.d
+
 WORKDIR /var/submariner
 
 COPY --from=builder \
@@ -56,15 +59,20 @@ COPY --from=builder \
     ${SOURCE}/package/await-node-ready.sh \
     /usr/local/bin/
 
-RUN chown 0:0 /usr/local/bin/* && \
-    chmod 500 /usr/local/bin/submariner-gateway \
+RUN ls -l /usr/local/bin
+RUN chgrp -R root /usr/local/bin && \
+    chmod 775 /usr/local/bin/submariner-gateway \
               /usr/local/bin/await-node-ready \
               /usr/local/bin/submariner.sh \
               /usr/local/bin/pluto \
               /usr/local/bin/await-node-ready.sh
+RUN ls -l /usr/local/bin
+RUN chown -R submariner /usr/local/bin
+RUN ls -l /usr/local/bin
 
 COPY --from=builder ${SOURCE}/LICENSE /licenses/LICENSE
 
+# TODO This is commented out in the current build, but requried by EC in the new build
 USER 1001010000
 
 ENTRYPOINT ["/usr/local/bin/submariner.sh"]
