@@ -45,8 +45,9 @@ COPY --from=builder \
     ${SOURCE}/package/submariner-globalnet.sh \
     /usr/local/bin/
 
-RUN chown submariner:0 /usr/local/bin/* && \
-    chmod 775 /usr/local/bin/submariner-globalnet \
+RUN chown submariner:0 /usr/local/bin/submariner-globalnet \
+                       /usr/local/bin/submariner-globalnet.sh
+RUN chmod 775 /usr/local/bin/submariner-globalnet \
               /usr/local/bin/submariner-globalnet.sh
 
 COPY --from=builder ${SOURCE}/LICENSE /licenses/LICENSE
