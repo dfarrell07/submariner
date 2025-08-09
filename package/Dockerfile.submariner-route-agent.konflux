@@ -60,7 +60,6 @@ RUN chmod 775 /usr/local/bin/submariner-route-agent \
               /usr/local/bin/await-node-ready \
               /usr/local/bin/submariner-route-agent.sh \
               /usr/local/bin/await-node-ready.sh
-RUN chown submariner:0 /usr/local/bin/*
 RUN ls -l /usr/local/bin
 
 COPY --from=builder ${SOURCE}/LICENSE /licenses/LICENSE

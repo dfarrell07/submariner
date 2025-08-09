@@ -60,7 +60,7 @@ COPY --from=builder \
     /usr/local/bin/
 
 RUN chown 0:0 /usr/local/bin/* && \
-    chmod 500 /usr/local/bin/submariner-gateway \
+    chmod 775 /usr/local/bin/submariner-gateway \
               /usr/local/bin/await-node-ready \
               /usr/local/bin/submariner.sh \
               /usr/local/bin/pluto \
