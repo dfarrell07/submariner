@@ -59,12 +59,16 @@ COPY --from=builder \
     ${SOURCE}/package/await-node-ready.sh \
     /usr/local/bin/
 
+RUN ls -l /usr/local/bin
 RUN chgrp -R root /usr/local/bin && \
     chmod 775 /usr/local/bin/submariner-gateway \
               /usr/local/bin/await-node-ready \
               /usr/local/bin/submariner.sh \
               /usr/local/bin/pluto \
               /usr/local/bin/await-node-ready.sh
+RUN ls -l /usr/local/bin
+RUN chown -R submariner /usr/local/bin
+RUN ls -l /usr/local/bin
 
 COPY --from=builder ${SOURCE}/LICENSE /licenses/LICENSE
 
