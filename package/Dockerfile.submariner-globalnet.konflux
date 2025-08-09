@@ -45,12 +45,13 @@ COPY --from=builder \
     ${SOURCE}/package/submariner-globalnet.sh \
     /usr/local/bin/
 
-RUN chown 0:0 /usr/local/bin/* && \
-    chmod 500 /usr/local/bin/submariner-globalnet \
+RUN chown submariner:0 /usr/local/bin/* && \
+    chmod 775 /usr/local/bin/submariner-globalnet \
               /usr/local/bin/submariner-globalnet.sh
 
 COPY --from=builder ${SOURCE}/LICENSE /licenses/LICENSE
 
+# TODO This is commented out in the current build, but requried by EC in the new build
 USER 1001010000
 
 ENTRYPOINT ["/usr/local/bin/submariner-globalnet.sh"]
