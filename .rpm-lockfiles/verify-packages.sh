@@ -45,8 +45,9 @@ podman run --rm \
         rm -f /etc/yum.repos.d/*.repo 2>/dev/null
 
         for comp in gateway route-agent globalnet; do
-            # Extract repo names (without $basearch) for display
-            repos=$(grep "^\[" /lf/$comp/*.repo | sed "s/.*\[//; s/\]//; s/-\$basearch//g" |
+            # Extract unique repo names for display (normalize arch-specific names)
+            repos=$(grep "^\[" /lf/$comp/*.repo | sed "s/.*\[//; s/\]//" |
+                    sed "s/-\$basearch//g; s/-x86_64//g; s/-aarch64//g; s/-ppc64le//g; s/-s390x//g" |
                     grep -v "debug\|source" | sort -u | tr "\n" " " | sed "s/ $//")
             echo -e "${B}$comp${N} (repos: $repos)"
 
@@ -59,7 +60,9 @@ podman run --rm \
             pkgs=$(sed -n "/^packages:/,/^[a-z]/p" /lf/$comp/rpms.in.yaml | grep "^ *-" | sed "s/.*- //")
             pkg_display=$(echo $pkgs)  # space-separated for display
             pkg_count=$(echo $pkg_display | wc -w)
-            arches="x86_64 aarch64 ppc64le s390x"
+
+            # Get arches from rpms.in.yaml (skip commented ones)
+            arches=$(sed -n "/^arches:/,/^[a-z]/p" /lf/$comp/rpms.in.yaml | grep "^ *-" | grep -v "#" | sed "s/.*- //" | tr "\n" " ")
 
             # Query all arches in parallel (packages + bash for access check)
             echo -e "  ${Y}querying...${N}"
@@ -68,7 +71,7 @@ podman run --rm \
                 (
                     # Get pkg@repo format, simplify repo names (remove arch, -rpms suffix)
                     dnf -q repoquery --forcearch="$arch" --queryformat="%{name}@%{repoid}\n" $pkgs 2>/dev/null |
-                        sed "s/-for-rhel-9-[^-]*//; s/-for-ubi-9-[^-]*//; s/-9-for-[^-]*//; s/-rpms$//" |
+                        sed "s/rhel-9-for-[^-]*-//g; s/ubi-9-for-[^-]*-//g; s/codeready-builder-for-[^-]*-//g; s/fast-datapath-for-[^-]*-//g; s/-rpms$//" |
                         sort -u | grep . > "$tmpdir/$arch" || true
                     # Also check bash to detect repo access issues
                     dnf -q repoquery --forcearch="$arch" bash 2>/dev/null | grep -q . && echo "1" > "$tmpdir/${arch}_access" || true
