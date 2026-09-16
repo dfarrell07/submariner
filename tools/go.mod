@@ -1,6 +1,6 @@
 module github.com/submariner-io/submariner/tools
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/uw-labs/lichen v0.1.7
